@@ -1,0 +1,55 @@
+---
+title: "plan"
+description: "Record a forward-looking plan when one is set."
+---
+
+Intent, so the next agent continues the work instead of restarting it. A plan
+written at the end of a session is what turns a hard stop into a handover.
+
+## Parameters
+
+<ParamField path="content" type="string" required>
+  The forward-looking plan to record.
+</ParamField>
+
+<ParamField path="scope" type="'org' | 'agent'" default="org">
+  `org` (default) writes to the shared team memory. `agent` keeps it private to
+  the identity in the `X-Vex-Agent` header. See [Scope](/concepts/scope).
+</ParamField>
+
+<ParamField path="space" type="string">
+  Optional space slug. Omit to write to the org's default store.
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+```json A sequence of work
+{
+  "content": "Next: migrate the auth service to the new token format, then backfill existing sessions, then remove the compatibility shim"
+}
+```
+
+```json With a stopping point
+{
+  "content": "Refactoring the invoice generator in three passes. Pass 1 (extraction) is done; pass 2 splits the tax calculation out next.",
+  "space": "billing"
+}
+```
+</CodeGroup>
+
+## Guidance
+
+<AccordionGroup>
+  <Accordion title="Say where you stopped" icon="flag">
+    A plan is most useful when it records progress against itself. "Three passes,
+    first is done" tells the next agent where to start. "Refactor in three
+    passes" does not.
+  </Accordion>
+
+  <Accordion title="Plans go stale — that is fine" icon="clock">
+    When the work is done or the approach changes, record the new decision. The
+    superseding step retires the plan it contradicts, so you are not maintaining
+    a to-do list by hand.
+  </Accordion>
+</AccordionGroup>

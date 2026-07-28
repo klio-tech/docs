@@ -1,0 +1,91 @@
+---
+title: "Authentication"
+description: "Endpoint, headers, and how a request resolves to an org, an agent, and a project."
+---
+
+## Endpoint
+
+Hosted Klio speaks MCP over Streamable HTTP:
+
+```
+https://mcp.klio.tech/mcp
+```
+
+Self-hosted installs expose the same path on whatever host you run the MCP
+service on.
+
+## API key
+
+Authenticate with the `X-Vex-Key` header:
+
+```bash
+curl https://mcp.klio.tech/mcp \
+  -H "X-Vex-Key: vex_live_..." \
+  -H "X-Vex-Agent: claude-code"
+```
+
+Create keys in the dashboard under **Settings → API keys**. The key resolves the
+request to an org, and that org boundary is the one guarantee nothing crosses.
+
+<Warning>
+  A key is org-wide. Anyone holding it can read and write everything in that
+  org's memory. Treat it like a database credential: environment variables or a
+  password manager, never a committed file.
+</Warning>
+
+<Note>
+  `X-AgentGuard-Key` is accepted as a legacy alias for `X-Vex-Key`. It exists so
+  older clients keep working and should not be used in new integrations.
+</Note>
+
+### OAuth
+
+The hosted MCP server also accepts OAuth bearer tokens, verified against the
+Klio Cloud issuer, for clients that support the MCP authorization flow. In that
+case the agent identity defaults to the OAuth `client_id` unless `X-Vex-Agent`
+overrides it.
+
+## Headers
+
+| Header | Required | Purpose |
+| --- | --- | --- |
+| `X-Vex-Key` | Yes¹ | API key. Resolves the org. |
+| `X-Vex-Agent` | No | Stable agent identity. Drives attribution and `agent` scope. |
+| `X-Vex-Project` | No | Declares the workspace's project — a git remote URL or project slug. |
+
+<Info>
+  ¹ Unless you are authenticating with an OAuth bearer token instead.
+</Info>
+
+### `X-Vex-Agent`
+
+A stable, per-agent string — `claude-code`, `cursor`, `codex`, `ci-bot`. It is
+what makes a ledger of "who wrote what" possible, and it is what
+`scope: "agent"` resolves against.
+
+Clients that omit it are all folded into a single default agent identity. Things
+still work, but attribution collapses and private scope stops being meaningfully
+private.
+
+### `X-Vex-Project`
+
+Lets a workspace declare its project once instead of passing `project` on every
+call. It accepts a git remote URL or a project slug.
+
+<Warning>
+  Project resolution **fails open**: a missing header, an unrecognised
+  identifier, or a lookup error all fall back to org-wide rather than failing the
+  request. This keeps a misconfigured client working, but it means the header is
+  a convenience — never a security control. The security boundary is the org.
+</Warning>
+
+## Errors
+
+| Status | Meaning | Fix |
+| --- | --- | --- |
+| `401` | Missing or invalid `X-Vex-Key` | Check the header name and that the key has not been revoked |
+| `403` | Key is valid but not permitted for this resource | Confirm the key belongs to the org you are addressing |
+| `429` | Plan quota or rate limit reached | See usage in the dashboard, or upgrade the plan |
+
+A bare `GET https://mcp.klio.tech/mcp` returning `401` is expected — that is the
+endpoint confirming it is alive and requires auth.

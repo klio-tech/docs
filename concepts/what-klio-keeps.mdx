@@ -1,0 +1,94 @@
+---
+title: "What Klio keeps"
+description: "What belongs in a shared workplace, what is stripped before it is written, and what is retired once it stops being true."
+---
+
+A memory layer is defined as much by what it refuses to keep as by what it
+stores. This page is the honest version of both.
+
+## Keep vs. never keep
+
+<Columns cols={2}>
+  <Card title="Worth keeping" icon="check">
+    - **Decisions** — what was chosen, and why
+    - **Repo rules** — conventions the work must hold to
+    - **Plans** — the shape of work in flight
+    - **Durable facts** about the project or the people on it
+  </Card>
+
+  <Card title="Never stored" icon="ban">
+    - **Secrets** — keys, tokens, credentials
+    - **Personal data** — redacted before write
+    - **Transcripts, tool calls, file contents**
+    - **Anything a newer decision has retired**
+  </Card>
+</Columns>
+
+The test for whether something belongs: *would the next agent be worse off
+without it?* A decision passes. A log line of a file being read does not.
+
+## Redaction fails closed
+
+Secrets and personal data are stripped **before** anything is persisted — not
+on the way out. If content cannot be made safe, the write is rejected rather
+than stored in a degraded form.
+
+<Warning>
+  This is a backstop, not a licence. Redaction is pattern-based, and no
+  pattern set catches everything. Do not deliberately route credentials or
+  customer PII through memory tools on the assumption that they will be caught.
+  Prompt your agents not to send them in the first place.
+</Warning>
+
+## Superseding
+
+When a newer memory contradicts an older one, the older one is superseded and
+stops surfacing in recall. The chain is retained — the history of what was
+believed when is not deleted — but only current truth comes back from a query.
+
+This is what keeps recall sharp over months. Without it, a store accumulates
+contradictions and the agent picks between them arbitrarily.
+
+To retract something explicitly rather than waiting for it to be contradicted,
+use [`forget`](/tools/forget) with the memory id from a prior recall.
+
+## Deduplication
+
+Near-identical writes are collapsed rather than stored twice. Agents are
+repetitive by nature — several of them working the same project will write the
+same conclusion in slightly different words, and without dedup the store fills
+with paraphrases of a single fact.
+
+<Note>
+  Dedup is similarity-based, so it is a judgement call rather than an exact
+  match. Two genuinely distinct facts phrased almost identically can be
+  collapsed. If you need both, make the wording meaningfully different or scope
+  them to different [spaces](/concepts/scope).
+</Note>
+
+## Where it physically lives
+
+<Tabs>
+  <Tab title="Klio Cloud">
+    Memory lives on Klio's infrastructure, encrypted in transit and at rest at
+    the infrastructure level, isolated per org. Secrets and PII are redacted
+    before storage.
+
+    The encryption keys are ours, and Cloud writes are not hash-chained. If your
+    threat model requires keys you hold, self-host.
+  </Tab>
+
+  <Tab title="Self-hosted">
+    Memory lives in your own Postgres, on your own hardware. It is encrypted at
+    rest under a key **you** own, and every write is chained with SHA-256 so the
+    history is tamper-evident and independently inspectable.
+
+    Nothing leaves your estate. See [Self-hosting](/self-host/install).
+  </Tab>
+</Tabs>
+
+<Info>
+  The user-held key and the hash chain are properties of the **self-hosted**
+  engine specifically. Anywhere you see those claims, they refer to self-hosting
+  — Klio Cloud makes the weaker guarantees described above.
+</Info>

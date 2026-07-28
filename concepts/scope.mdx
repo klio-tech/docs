@@ -1,0 +1,119 @@
+---
+title: "Scope and spaces"
+description: "Strong scope is the feature. Random global memory everywhere is the failure mode."
+---
+
+The most common objection to shared agent memory is the right one: memory that
+leaks everywhere is worse than no memory. An agent working on your billing
+service should not surface a note from an unrelated prototype, and one team's
+context should not appear in another's.
+
+Klio answers that with three separate axes.
+
+## The three axes
+
+<CardGroup cols={3}>
+  <Card title="Org" icon="building">
+    The tenant boundary, resolved from your API key. Nothing crosses it. Every
+    read and write is confined to the org the key belongs to.
+  </Card>
+
+  <Card title="Agent" icon="robot">
+    Who wrote it, from the `X-Vex-Agent` header. Used for attribution, and for
+    private memory when you ask for it.
+  </Card>
+
+  <Card title="Space" icon="folder-tree">
+    A named subdivision within the org — one per project, service, or workstream.
+    Managed with the [`space`](/tools/space) tool.
+  </Card>
+</CardGroup>
+
+## Shared by default, private on request
+
+Every write tool takes a `scope` parameter with two values:
+
+| `scope` | Who can recall it | Use it for |
+| --- | --- | --- |
+| `org` *(default)* | Every agent on the org | The shared team brain — decisions, repo rules, plans |
+| `agent` | Only the agent identity that wrote it | Working notes private to one agent |
+
+```json
+{
+  "content": "The staging deploy needs the VPN on",
+  "scope": "org"
+}
+```
+
+The default is `org` on purpose. A shared workplace where everything defaults to
+private is an empty workplace — but when an agent genuinely needs a scratchpad,
+`agent` scope keeps it out of everyone else's recall.
+
+<Note>
+  `scope: "agent"` resolves against the `X-Vex-Agent` header. If your client
+  does not send one, every agent shares a single default identity — and
+  `agent` scope stops meaning very much. Set the header.
+</Note>
+
+## Spaces
+
+A space is a named store within the org. Use one per project so a question about
+the billing service does not pull answers from the marketing site.
+
+```json
+{ "action": "create", "name": "Billing service", "slug": "billing" }
+```
+
+Then pass the slug on reads and writes:
+
+```json
+{ "content": "Invoices are generated nightly at 02:00 UTC", "space": "billing" }
+```
+
+```json
+{ "query": "when do invoices generate?", "space": "billing" }
+```
+
+Omit `space` and you are working against the org's default store. See the
+[`space` tool](/tools/space) for `list`, `create`, `info`, and `switch`.
+
+## Narrowing a recall
+
+[`recall`](/tools/recall) also accepts a `project` filter, which narrows results
+without needing a separate space:
+
+```json
+{ "query": "auth error handling", "project": "api", "limit": 5 }
+```
+
+Clients can additionally declare a workspace-wide project through the
+`X-Vex-Project` header, carrying a git remote URL or a project slug.
+
+<Warning>
+  Project resolution **fails open**. If the header is missing, the identifier is
+  unknown, or the lookup errors, the request falls back to org-wide rather than
+  returning nothing. That keeps a misconfigured client working, but it means the
+  header is a convenience — never a security boundary. The boundary is the org.
+</Warning>
+
+## Choosing a layout
+
+<AccordionGroup>
+  <Accordion title="Solo developer, several projects" icon="user">
+    One org, one space per repo. Set `X-Vex-Project` per workspace, or pass
+    `space` explicitly. Skip `agent` scope entirely — with one person, shared is
+    the point.
+  </Accordion>
+
+  <Accordion title="Team on a shared codebase" icon="users">
+    One org, spaces per service or bounded context. Set `X-Vex-Agent` per tool
+    so you can see whether a decision came from Claude Code or Cursor, and who
+    was driving.
+  </Accordion>
+
+  <Accordion title="Agency or multi-client work" icon="briefcase">
+    One org per client, not one space per client. Spaces subdivide; they are not
+    a tenancy boundary. If two bodies of work must never see each other, they
+    need separate orgs and separate keys.
+  </Accordion>
+</AccordionGroup>

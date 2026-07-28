@@ -1,0 +1,97 @@
+---
+title: "Cursor"
+description: "Connect Cursor to the same shared workplace your other agents use."
+---
+
+## Add the server
+
+Create `.cursor/mcp.json` in your project (or `~/.cursor/mcp.json` for every
+project):
+
+```json
+{
+  "mcpServers": {
+    "klio": {
+      "url": "https://mcp.klio.tech/mcp",
+      "headers": {
+        "X-Vex-Key": "YOUR_KEY",
+        "X-Vex-Agent": "cursor"
+      }
+    }
+  }
+}
+```
+
+Reload Cursor, then check **Settings → MCP** — `klio` should be listed with
+eight tools.
+
+<Warning>
+  A project-level `.cursor/mcp.json` contains your API key. Add it to
+  `.gitignore`, or keep the config in `~/.cursor/mcp.json` instead so the key
+  never sits in the repo.
+</Warning>
+
+## Set `X-Vex-Agent` differently per tool
+
+Use `cursor` here and `claude-code` in Claude Code. That difference is the whole
+point of the header — it lets you see, later, which agent left which decision,
+and it makes [`scope: "agent"`](/concepts/scope) meaningful.
+
+## Make recall reflexive
+
+Add a rule in `.cursor/rules/klio.mdc`:
+
+```md
+---
+description: Shared memory across agents
+alwaysApply: true
+---
+
+Before answering questions about this project, call `recall` first — another
+agent may have already decided it.
+
+When a decision is made, call `decide` with its rationale.
+When a plan is set, call `plan`.
+When the user states a durable fact or preference, call `remember`.
+
+Do not persist secrets, tool call logs, or file contents.
+```
+
+## Proving it works with Claude Code
+
+The point of a shared workplace is that it does not matter which agent shows up.
+Worth testing once:
+
+<Steps>
+  <Step title="Decide in one, ask in the other">
+    Have Claude Code record a decision with `decide`. Then start a fresh Cursor
+    session and ask the same question in your own words.
+  </Step>
+
+  <Step title="Cursor should answer with the rationale">
+    It calls `recall`, finds the decision Claude Code wrote, and answers —
+    including *why*. You never re-explained it.
+  </Step>
+</Steps>
+
+<Check>
+  If that works, both agents are on the same org and the handover is live.
+</Check>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="MCP server shows as failed" icon="triangle-exclamation">
+    Almost always the key. Cursor surfaces little detail, so test the endpoint
+    directly — a wrong or revoked key returns `401`:
+
+    ```bash
+    curl -i https://mcp.klio.tech/mcp -H "X-Vex-Key: YOUR_KEY"
+    ```
+  </Accordion>
+
+  <Accordion title="Cursor sees different memories than Claude Code" icon="code-compare">
+    Different keys mean different orgs, and orgs never share. Confirm both use
+    the same key — and that one is not passing a `space` the other omits.
+  </Accordion>
+</AccordionGroup>

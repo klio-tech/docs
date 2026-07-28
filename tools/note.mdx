@@ -1,0 +1,47 @@
+---
+title: "note"
+description: "Free-form durable context that is not a fact, decision, or plan."
+---
+
+The catch-all. Use it when something is worth keeping but does not fit the
+other verbs — context, caveats, warnings about the shape of the codebase.
+
+## Parameters
+
+<ParamField path="content" type="string" required>
+  The free-form note to store.
+</ParamField>
+
+<ParamField path="scope" type="'org' | 'agent'" default="org">
+  `org` (default) writes to the shared team memory. `agent` keeps it private to
+  the identity in the `X-Vex-Agent` header. See [Scope](/concepts/scope).
+</ParamField>
+
+<ParamField path="space" type="string">
+  Optional space slug. Omit to write to the org's default store.
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+```json A caveat about the code
+{
+  "content": "The legacy/ directory is scheduled for deletion after Q3 — do not invest in refactoring it"
+}
+```
+
+```json Context a newcomer would lack
+{
+  "content": "The odd retry logic in the webhook handler exists because a partner's endpoint returns 200 before it has actually processed anything"
+}
+```
+</CodeGroup>
+
+## Guidance
+
+<Tip>
+  If you find yourself reaching for `note` constantly, check whether the content
+  is really a [decision](/tools/decide) or a [fact](/tools/remember). Those types
+  carry more weight in recall, so using the right verb makes the memory easier to
+  find later.
+</Tip>

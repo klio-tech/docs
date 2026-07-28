@@ -1,0 +1,68 @@
+---
+title: "decide"
+description: "Record a decision and its rationale as soon as one is made."
+---
+
+The highest-value verb. A decision recorded with its reasoning is the thing
+that stops the next agent from quietly undoing your work — and stops a human
+from having to explain the same trade-off twice.
+
+## Parameters
+
+<ParamField path="content" type="string" required>
+  The decision that was made.
+</ParamField>
+
+<ParamField path="rationale" type="string">
+  Why this was chosen over the alternatives. Optional, but decisions without
+  reasoning get re-litigated the first time someone disagrees.
+</ParamField>
+
+<ParamField path="scope" type="'org' | 'agent'" default="org">
+  `org` (default) writes to the shared team memory. `agent` keeps it private to
+  the identity in the `X-Vex-Agent` header. See [Scope](/concepts/scope).
+</ParamField>
+
+<ParamField path="space" type="string">
+  Optional space slug. Omit to write to the org's default store.
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+```json With rationale
+{
+  "content": "Retry 429s with jittered backoff, cap at 5 attempts",
+  "rationale": "Upstream rate-limits per minute; fixed backoff synchronised our retries"
+}
+```
+
+```json A rejected alternative is still a decision
+{
+  "content": "Not moving to a monorepo this quarter",
+  "rationale": "CI migration cost outweighs the benefit while we are three services"
+}
+```
+</CodeGroup>
+
+## Guidance
+
+<AccordionGroup>
+  <Accordion title="Always pass a rationale" icon="gavel">
+    The decision tells the next agent *what*; the rationale tells it *whether the
+    reasoning still holds*. Circumstances change — an agent that can see why a
+    choice was made can tell when it should be revisited. One that only sees the
+    choice cannot.
+  </Accordion>
+
+  <Accordion title="Record decisions against, too" icon="ban">
+    "We considered X and chose not to" is worth as much as what you picked.
+    Without it, someone re-proposes X every quarter.
+  </Accordion>
+
+  <Accordion title="Contradictions supersede" icon="rotate-left">
+    A newer decision that contradicts an older one retires it — the old one stops
+    surfacing in recall. You do not need to clean up first. See
+    [What Klio keeps](/concepts/what-klio-keeps).
+  </Accordion>
+</AccordionGroup>

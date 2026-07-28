@@ -1,0 +1,57 @@
+---
+title: "observe"
+description: "Log something the agent saw or did this session."
+---
+
+Session activity worth carrying forward — a surprising behaviour, a discovered
+constraint, a result that will matter later.
+
+This is the verb most likely to fill a store with noise, so it is also the one
+to use most sparingly.
+
+## Parameters
+
+<ParamField path="content" type="string" required>
+  What the agent observed or did this session.
+</ParamField>
+
+<ParamField path="scope" type="'org' | 'agent'" default="org">
+  `org` (default) writes to the shared team memory. `agent` keeps it private to
+  the identity in the `X-Vex-Agent` header. See [Scope](/concepts/scope).
+</ParamField>
+
+<ParamField path="space" type="string">
+  Optional space slug. Omit to write to the org's default store.
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+```json A discovered constraint
+{
+  "content": "The integration suite fails on Node 18 but passes on 20 — the fetch polyfill is the cause"
+}
+```
+
+```json A surprising behaviour
+{
+  "content": "The staging Postgres rejects connections without the VPN, even from CI"
+}
+```
+</CodeGroup>
+
+## Guidance
+
+<Warning>
+  Do not log routine activity. An agent that calls `observe` after every tool
+  call produces a store where recall returns noise instead of signal. Before
+  writing, ask whether it will still matter next week. If not, skip it.
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Observations that should be facts" icon="arrow-right">
+    "The suite fails on Node 18" is an observation. Once you have confirmed it
+    and pinned the version, it has become a fact — write it with
+    [`remember`](/tools/remember) so it carries the right weight.
+  </Accordion>
+</AccordionGroup>
