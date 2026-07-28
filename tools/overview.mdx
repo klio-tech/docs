@@ -1,0 +1,96 @@
+---
+title: "Tools overview"
+description: "The eight MCP tools Klio exposes, and when each one is the right verb."
+---
+
+Klio's surface is deliberately small: one verb per job, so an agent choosing
+between them does not have to think hard. Every MCP client gets all eight
+automatically on connection — there is no SDK to wire up.
+
+## The eight verbs
+
+| Tool | Purpose | Required |
+| --- | --- | --- |
+| [`recall`](/tools/recall) | Retrieve relevant memories before acting | `query` |
+| [`remember`](/tools/remember) | Store a durable fact or preference | `content` |
+| [`decide`](/tools/decide) | Record a decision and its rationale | `content` |
+| [`plan`](/tools/plan) | Record a forward-looking plan | `content` |
+| [`observe`](/tools/observe) | Log what the agent saw or did this session | `content` |
+| [`note`](/tools/note) | Durable context that is not a fact, decision, or plan | `content` |
+| [`space`](/tools/space) | List, create, inspect, or switch spaces | `action` |
+| [`forget`](/tools/forget) | Retract a memory by id | `memory_id` |
+
+## Choosing a write verb
+
+The five write tools differ only in the type they record, but that type is what
+makes recall useful later — a decision and a stray observation should not carry
+the same weight.
+
+<AccordionGroup>
+  <Accordion title="decide — something was chosen" icon="gavel">
+    Use whenever an option was picked over alternatives. Pass `rationale`; a
+    decision without its reasoning gets re-litigated the first time someone
+    disagrees with it.
+
+    > "We'll use jittered backoff for 429s, because fixed backoff was
+    > synchronising our retries."
+  </Accordion>
+
+  <Accordion title="remember — a durable fact or preference" icon="bookmark">
+    Facts about the project, the stack, or the people. Call it proactively when
+    a user reveals one, not only when asked to.
+
+    > "The team deploys on Tuesdays." · "Abhishek prefers TypeScript strict mode on."
+  </Accordion>
+
+  <Accordion title="plan — work that is intended" icon="list-check">
+    Forward-looking intent, so the next agent can continue rather than restart.
+
+    > "Next: migrate the auth service to the new token format, then backfill."
+  </Accordion>
+
+  <Accordion title="observe — what happened this session" icon="eye">
+    Session activity worth carrying forward. Use sparingly — this is the verb
+    most likely to fill a store with noise. If it will not matter next week, do
+    not write it.
+
+    > "The integration suite fails on Node 18 but passes on 20."
+  </Accordion>
+
+  <Accordion title="note — everything else durable" icon="note-sticky">
+    The catch-all for context that is worth keeping but is not a fact, decision,
+    or plan.
+
+    > "The `legacy/` directory is scheduled for deletion after Q3 — don't invest in it."
+  </Accordion>
+</AccordionGroup>
+
+## Common parameters
+
+Every write tool (`remember`, `decide`, `plan`, `observe`, `note`) accepts:
+
+<ParamField path="scope" type="'org' | 'agent'" default="org">
+  `org` shares the memory with every agent on the org. `agent` keeps it private
+  to the identity in the `X-Vex-Agent` header. See [Scope](/concepts/scope).
+</ParamField>
+
+<ParamField path="space" type="string">
+  Optional space slug. Omit to write to the org's default store.
+</ParamField>
+
+## What good usage looks like
+
+Agents use Klio well when reading is reflexive and writing is selective:
+
+```md
+Before answering questions about this project, call `recall` first.
+When a decision is made, call `decide` with its rationale.
+When a plan is set, call `plan`.
+Do not persist secrets, tool call logs, or file contents.
+```
+
+<Tip>
+  The failure mode is not too little memory — it is too much. An agent that
+  calls `observe` after every tool call produces a store where recall returns
+  noise. Write conclusions, not activity.
+</Tip>

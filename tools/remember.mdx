@@ -1,0 +1,64 @@
+---
+title: "remember"
+description: "Store a durable fact or preference for the team."
+---
+
+Facts that stay true past this session — about the project, the stack, or the
+people working on it.
+
+Call it **proactively**. When a user reveals a durable preference or fact in
+passing, that is the moment to write it; waiting to be asked means it is
+usually never written at all.
+
+## Parameters
+
+<ParamField path="content" type="string" required>
+  The durable fact or preference to store.
+</ParamField>
+
+<ParamField path="scope" type="'org' | 'agent'" default="org">
+  `org` (default) writes to the shared team memory. `agent` keeps it private to
+  the identity in the `X-Vex-Agent` header. See [Scope](/concepts/scope).
+</ParamField>
+
+<ParamField path="space" type="string">
+  Optional space slug. Omit to write to the org's default store.
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+```json A team convention
+{
+  "content": "The team deploys on Tuesdays; no releases after 15:00 UTC on Fridays"
+}
+```
+
+```json A personal preference
+{
+  "content": "Abhishek prefers TypeScript with strict mode on, and no default exports"
+}
+```
+
+```json Scoped to a project
+{
+  "content": "Invoices are generated nightly at 02:00 UTC",
+  "space": "billing"
+}
+```
+</CodeGroup>
+
+## Guidance
+
+<AccordionGroup>
+  <Accordion title="Facts, not events" icon="bookmark">
+    "We deploy on Tuesdays" is a fact. "We deployed on Tuesday" is an event —
+    that belongs in [`observe`](/tools/observe), if anywhere.
+  </Accordion>
+
+  <Accordion title="Write it so it survives without you" icon="quote-left">
+    Memories are read cold, months later, by an agent with none of your context.
+    "Use the new endpoint" is useless. "The billing service moved to
+    /v2/invoices in June; /v1 is read-only" survives.
+  </Accordion>
+</AccordionGroup>

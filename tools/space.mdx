@@ -1,0 +1,91 @@
+---
+title: "space"
+description: "List, create, inspect, or switch the named stores within an org."
+---
+
+A space is a named subdivision of an org's memory — one per project, service, or
+workstream. Spaces are how a shared workplace stays useful as it grows, instead
+of collapsing into one pile where every query returns everything.
+
+## Parameters
+
+<ParamField path="action" type="'list' | 'create' | 'info' | 'switch'" required>
+  The operation to perform.
+</ParamField>
+
+<ParamField path="name" type="string">
+  Human-readable space name. Used by `create`.
+</ParamField>
+
+<ParamField path="slug" type="string">
+  Space slug. Used by `info`, `switch`, and optionally `create`.
+</ParamField>
+
+## Actions
+
+<Tabs>
+  <Tab title="list">
+    Enumerate the spaces on this org.
+
+    ```json
+    { "action": "list" }
+    ```
+  </Tab>
+
+  <Tab title="create">
+    Create a space. Pass a readable `name`; supply `slug` to control the
+    identifier rather than having one derived.
+
+    ```json
+    {
+      "action": "create",
+      "name": "Billing service",
+      "slug": "billing"
+    }
+    ```
+  </Tab>
+
+  <Tab title="info">
+    Inspect one space by slug.
+
+    ```json
+    { "action": "info", "slug": "billing" }
+    ```
+  </Tab>
+
+  <Tab title="switch">
+    Make a space the active one for this session, so subsequent calls do not
+    need to pass `space` each time.
+
+    ```json
+    { "action": "switch", "slug": "billing" }
+    ```
+  </Tab>
+</Tabs>
+
+## Using a space
+
+Once created, pass the slug on reads and writes:
+
+```json
+{ "content": "Invoices generate nightly at 02:00 UTC", "space": "billing" }
+```
+
+```json
+{ "query": "when do invoices generate?", "space": "billing" }
+```
+
+Or `switch` once and let the session carry it.
+
+## Spaces are not a tenancy boundary
+
+<Warning>
+  Spaces subdivide an org's memory for relevance. They are **not** an isolation
+  boundary — anyone holding the org's API key can read any space in it.
+
+  If two bodies of work must never see each other — separate clients, separate
+  customers — they need separate orgs and separate keys, not separate spaces.
+</Warning>
+
+See [Scope and spaces](/concepts/scope) for how spaces interact with `org` and
+`agent` scope.

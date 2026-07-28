@@ -1,0 +1,58 @@
+---
+title: "forget"
+description: "Retract a memory by id so it stops surfacing in recall."
+---
+
+Explicit retraction. Use it when something was written that should not have
+been, or when a fact has stopped being true and nothing has contradicted it yet.
+
+## Parameters
+
+<ParamField path="memory_id" type="string" required>
+  The id of the memory to retract. Ids come back on
+  [`recall`](/tools/recall) results.
+</ParamField>
+
+## Example
+
+Recall first to find the id, then retract:
+
+```json
+{ "query": "deployment schedule" }
+```
+
+```json
+{ "memory_id": "mem_01HZX9..." }
+```
+
+## When to reach for it
+
+<AccordionGroup>
+  <Accordion title="Something was written that should not have been" icon="eraser">
+    An agent recorded a customer name, or an internal detail that does not belong
+    in shared memory. Retract it.
+  </Accordion>
+
+  <Accordion title="A fact expired without being replaced" icon="clock">
+    "Deploys are paused during the migration" was true and is not any more, and
+    there is no newer decision to supersede it. Retract rather than leaving it to
+    mislead.
+  </Accordion>
+
+  <Accordion title="Recall keeps surfacing something unhelpful" icon="magnifying-glass">
+    If a memory is technically true but consistently crowds out better answers,
+    retracting it is a legitimate fix.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  You usually do not need `forget` for ordinary changes of mind. Recording the
+  new decision with [`decide`](/tools/decide) supersedes the one it contradicts
+  automatically — and unlike retraction, that keeps the reasoning trail intact.
+</Note>
+
+<Warning>
+  A retracted memory stops surfacing in recall for everyone on the org. If
+  several agents depended on it, they lose it at the same moment — and unlike
+  superseding, there is no replacement left in its place.
+</Warning>

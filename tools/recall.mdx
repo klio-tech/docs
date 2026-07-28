@@ -1,0 +1,84 @@
+---
+title: "recall"
+description: "Retrieve relevant memories for the current org before acting."
+---
+
+The read verb. An agent should call this before answering questions about a
+project — it is the half of the handover that makes the other half worth doing.
+
+## Parameters
+
+<ParamField path="query" type="string" required>
+  What to search the team's memory for. Semantic, not keyword — phrase it the
+  way you would ask a colleague.
+</ParamField>
+
+<ParamField path="scope" type="'org' | 'agent'" default="org">
+  `org` searches the shared team memory. `agent` searches only what this agent
+  identity wrote privately. See [Scope](/concepts/scope).
+</ParamField>
+
+<ParamField path="space" type="string">
+  Optional space slug, to confine the search to one project's store.
+</ParamField>
+
+<ParamField path="project" type="string">
+  Optional project identifier, to narrow results without switching space.
+</ParamField>
+
+<ParamField path="limit" type="integer" default="10">
+  Maximum memories to return. Between `1` and `50`.
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+```json Basic
+{
+  "query": "how do we handle auth errors in the API?"
+}
+```
+
+```json Scoped to a space
+{
+  "query": "when do invoices generate?",
+  "space": "billing",
+  "limit": 5
+}
+```
+
+```json This agent's private notes
+{
+  "query": "what was I in the middle of?",
+  "scope": "agent"
+}
+```
+</CodeGroup>
+
+## Notes on behaviour
+
+<AccordionGroup>
+  <Accordion title="Superseded memories do not come back" icon="rotate-left">
+    If a decision has been contradicted by a newer one, recall returns the
+    current version only. You are not asked to reconcile the two — that is the
+    point of the retire step in the [handover loop](/concepts/handover-loop).
+  </Accordion>
+
+  <Accordion title="Reads see writes immediately" icon="bolt">
+    A memory written by another agent a second ago is available to the next
+    recall. There is no push to already-running agents, so an agent mid-session
+    sees new state only when it calls `recall` again.
+  </Accordion>
+
+  <Accordion title="Tune limit down, not up" icon="sliders">
+    The default of `10` suits most questions. Raising it toward `50` spends the
+    model's context on progressively less relevant results — usually a sign the
+    query should be narrower, or the memories should live in a
+    [space](/concepts/scope).
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  Results carry a memory id. Pass it to [`forget`](/tools/forget) to retract
+  something that surfaced and should not have.
+</Tip>

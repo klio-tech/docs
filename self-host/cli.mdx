@@ -1,0 +1,101 @@
+---
+title: "CLI reference"
+description: "Every command and flag in the klio launcher."
+---
+
+The launcher ships as [`@klio-tech/klio`](https://www.npmjs.com/package/@klio-tech/klio)
+on npm. Run it with `npx` — there is nothing to install globally.
+
+```bash
+npx @klio-tech/klio <command> [options]
+```
+
+## Commands
+
+<ResponseField name="init" type="command">
+  Set up the local stack and wire your AI agents (Claude Code, Cursor, and any
+  other supported client found on the machine).
+
+  ```bash
+  npx @klio-tech/klio init [--cloud | --local] [--email <addr>] [--image-tag <tag>]
+  ```
+
+  | Flag | Effect |
+  | --- | --- |
+  | `--local` | Run the full stack locally; skip the hosted/local prompt |
+  | `--cloud` | Wire agents to Klio Cloud instead of a local stack |
+  | `--email <addr>` | Pre-fill the claim email |
+  | `--image-tag <tag>` | Pin a specific container image tag instead of the default |
+</ResponseField>
+
+<ResponseField name="status" type="command">
+  Show what is running, where, and as whom. The first thing to run when
+  something looks wrong.
+
+  ```bash
+  npx @klio-tech/klio status
+  ```
+</ResponseField>
+
+<ResponseField name="update" type="command">
+  Re-prompt for provider, curator and agent settings — or upgrade the stack to a
+  new release.
+
+  ```bash
+  npx @klio-tech/klio update [--check | --to-latest | --to-version <X>] [--watch]
+  ```
+
+  | Flag | Effect |
+  | --- | --- |
+  | `--check` | Report whether an upgrade is available; change nothing |
+  | `--to-latest` | Upgrade the stack to the newest release |
+  | `--to-version <X>` | Upgrade (or pin) to a specific version |
+  | `--watch` | Run a long-lived host-side process that applies background auto-updates the bridge has detected — avoids needing docker-in-docker |
+</ResponseField>
+
+<ResponseField name="configure" type="command">
+  Tweak runtime settings such as auto-update mode and claim email.
+
+  ```bash
+  npx @klio-tech/klio configure
+  ```
+</ResponseField>
+
+<ResponseField name="down" type="command">
+  Stop the stack. **Data is preserved** — this is the safe way to pause.
+
+  ```bash
+  npx @klio-tech/klio down
+  ```
+</ResponseField>
+
+<ResponseField name="uninstall" type="command">
+  Stop the stack, **delete all data**, and restore agent configs from the
+  backups taken during `init`.
+
+  ```bash
+  npx @klio-tech/klio uninstall
+  ```
+
+  <Warning>
+    This deletes your memory store. Use `down` if you only want to stop the
+    stack.
+  </Warning>
+</ResponseField>
+
+<ResponseField name="version" type="command">
+  Print the package version.
+
+  ```bash
+  npx @klio-tech/klio version
+  # or
+  npx @klio-tech/klio --version
+  ```
+</ResponseField>
+
+## Global flags
+
+| Flag | Effect |
+| --- | --- |
+| `-h`, `--help` | Print usage |
+| `-v`, `--version` | Print the package version |

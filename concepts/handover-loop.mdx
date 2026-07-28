@@ -1,0 +1,82 @@
+---
+title: "The handover loop"
+description: "Six movements that turn raw session activity into something the next agent can act on."
+---
+
+A shared text store is not a workplace. The difference is what happens between
+one agent writing and the next one reading — six movements, of which the last
+three are the ones a plain database will not do for you.
+
+<Steps>
+  <Step title="Clock in" icon="door-open">
+    An agent connects over MCP and is resolved to an org, an agent identity, and
+    optionally a space. No vendor owns the door — Claude Code, Cursor, Codex and
+    your own agents all arrive the same way.
+  </Step>
+
+  <Step title="Capture" icon="pen-line">
+    Work is recorded as it happens through `remember`, `decide`, `plan`,
+    `observe`, and `note`. Secrets and personal data are stripped **before**
+    anything is persisted, and that step fails closed.
+  </Step>
+
+  <Step title="File to the job" icon="folder-tree">
+    Every write lands under an org, and optionally a space. The job's knowledge
+    stays with the job rather than in one undifferentiated pile. See
+    [Scope and spaces](/concepts/scope).
+  </Step>
+
+  <Step title="Distil" icon="filter">
+    Raw activity is condensed into the few durable facts worth keeping. The next
+    agent should inherit conclusions, not transcripts — a thousand observations
+    are worth less than the one decision they led to.
+  </Step>
+
+  <Step title="Retire" icon="rotate-left">
+    When a newer memory contradicts an older one, the old one is superseded
+    rather than left to compete with it. This is the step almost nothing else
+    does, and it is why recall stays sharp instead of degrading into a pile of
+    mutually contradictory notes.
+  </Step>
+
+  <Step title="Hand over" icon="arrow-right-arrow-left">
+    The next agent calls `recall` and receives current state. One writes; the
+    next to look already sees it.
+  </Step>
+</Steps>
+
+## Why distil and retire matter
+
+Keeping text is easy. Two things make stored context stop being useful over
+time, and both are the store's job to handle:
+
+<AccordionGroup>
+  <Accordion title="Volume drowns signal" icon="layer-group">
+    An agent that logs every step produces thousands of low-value entries. Recall
+    over that returns noise, and the model spends its context budget reading
+    things that did not matter. Distilling means a session's worth of activity
+    collapses into the handful of facts that survive it.
+  </Accordion>
+
+  <Accordion title="Old truth competes with new truth" icon="code-compare">
+    Six months in, the store holds "we use fixed backoff" *and* "we use jittered
+    backoff." Both surface. The agent picks one — sometimes the wrong one — and
+    quietly undoes work. Superseding means the retired statement stops being
+    returned, so nobody acts on stale truth.
+  </Accordion>
+</AccordionGroup>
+
+## What the loop does not do
+
+<Warning>
+  Klio does not notify running agents. A write is available to the next agent
+  that **reads**, immediately — but an agent already mid-session will not learn
+  about it until it calls `recall` again. If you need two agents to coordinate
+  within a single turn, that is a job for your orchestration layer, not for
+  memory.
+</Warning>
+
+Nor does it decide what is worth keeping on your behalf. Agents write what they
+are told to write. The prompt guidance in the [Quickstart](/quickstart#make-it-a-habit)
+exists because a workplace where nobody writes anything down is just an empty
+room.

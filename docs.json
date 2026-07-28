@@ -1,34 +1,84 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "Klio",
+  "description": "Klio is a shared workplace for AI agents. Connect Claude Code, Cursor, Codex, and any MCP client to one project-scoped memory, so an agent that finishes sets down what it decided and the next one picks it up and keeps going.",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#B0421A",
+    "light": "#D4623A",
+    "dark": "#8E3413"
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "pages": [
+    "tabs": [
       {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": ["index", "quickstart"]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/handover-loop",
+              "concepts/scope",
+              "concepts/what-klio-keeps"
+            ]
+          },
+          {
+            "group": "Connect an agent",
+            "pages": [
+              "connect/claude-code",
+              "connect/cursor",
+              "connect/any-mcp-client"
+            ]
+          },
+          {
+            "group": "Self-hosting",
+            "pages": ["self-host/install", "self-host/cli"]
+          }
+        ]
+      },
+      {
+        "tab": "Tool reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["tools/overview", "tools/authentication"]
+          },
+          {
+            "group": "Reading",
+            "pages": ["tools/recall"]
+          },
+          {
+            "group": "Writing",
+            "pages": [
+              "tools/remember",
+              "tools/decide",
+              "tools/plan",
+              "tools/observe",
+              "tools/note"
+            ]
+          },
+          {
+            "group": "Managing",
+            "pages": ["tools/space", "tools/forget"]
+          }
         ]
       }
     ],
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "GitHub",
+          "href": "https://github.com/klio-tech/klio",
+          "icon": "github"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Dashboard",
+          "href": "https://app.klio.tech",
+          "icon": "gauge"
         }
       ]
     }
@@ -41,13 +91,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:contact@klio.tech"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "label": "Start free",
+      "href": "https://app.klio.tech/auth/sign-up"
     }
   },
   "contextual": {
@@ -64,9 +114,8 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/klio_tech",
+      "github": "https://github.com/klio-tech"
     }
   }
 }

@@ -1,0 +1,114 @@
+---
+title: "Any MCP client"
+description: "Klio is a standard Streamable HTTP MCP server — anything that speaks the protocol can join."
+---
+
+There is no Klio SDK to install. If your agent speaks MCP, it can use the
+workplace, and that is deliberate: a workplace that only admitted one vendor's
+agents would not be a workplace.
+
+## Connection details
+
+| | |
+| --- | --- |
+| **Endpoint** | `https://mcp.klio.tech/mcp` |
+| **Transport** | Streamable HTTP |
+| **Auth** | `X-Vex-Key` header, or an OAuth bearer token |
+| **Identity** | `X-Vex-Agent` header (optional, recommended) |
+| **Tools** | `recall`, `remember`, `observe`, `plan`, `decide`, `note`, `space`, `forget` |
+
+## Generic configuration
+
+Most clients accept a variant of this shape:
+
+```json
+{
+  "mcpServers": {
+    "klio": {
+      "url": "https://mcp.klio.tech/mcp",
+      "headers": {
+        "X-Vex-Key": "YOUR_KEY",
+        "X-Vex-Agent": "your-agent-name"
+      }
+    }
+  }
+}
+```
+
+<Tip>
+  Give every distinct client its own `X-Vex-Agent` value — `codex`, `ci-bot`,
+  `review-agent`. That string is what makes "which agent decided this?"
+  answerable later.
+</Tip>
+
+## Codex
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.klio]
+url = "https://mcp.klio.tech/mcp"
+
+[mcp_servers.klio.headers]
+"X-Vex-Key" = "YOUR_KEY"
+"X-Vex-Agent" = "codex"
+```
+
+## Building your own agent
+
+Point any MCP client library at the endpoint and pass the headers. The tools
+arrive through the standard `tools/list` handshake with full JSON schemas — you
+do not need to hardcode their shapes.
+
+```python
+# Pseudocode — use whichever MCP client library your stack provides.
+client = MCPClient(
+    url="https://mcp.klio.tech/mcp",
+    headers={
+        "X-Vex-Key": os.environ["KLIO_API_KEY"],
+        "X-Vex-Agent": "my-research-agent",
+    },
+)
+
+hits = await client.call("recall", {"query": "what did we decide about retries?"})
+
+await client.call("decide", {
+    "content": "Cache embeddings for 24h",
+    "rationale": "Re-embedding the same documents was 60% of our token spend",
+})
+```
+
+## Verifying the endpoint
+
+A bare request without a valid key returns `401`. That is the healthy response —
+it confirms the endpoint is live and enforcing auth:
+
+```bash
+curl -i https://mcp.klio.tech/mcp
+```
+
+## Self-hosted
+
+Running your own engine? The endpoint is the same path on your own host, and
+everything else is unchanged:
+
+```
+http://localhost:8080/mcp
+```
+
+See [Self-hosting](/self-host/install) for the exact port your install exposes.
+
+## Notes
+
+<AccordionGroup>
+  <Accordion title="OAuth instead of an API key" icon="key">
+    The hosted server accepts OAuth bearer tokens for clients that support the
+    MCP authorization flow. The agent identity then defaults to the OAuth
+    `client_id`, unless `X-Vex-Agent` overrides it.
+  </Accordion>
+
+  <Accordion title="Legacy header" icon="clock-rotate-left">
+    `X-AgentGuard-Key` is still accepted as an alias for `X-Vex-Key`, so older
+    clients keep working. Do not use it in new integrations.
+  </Accordion>
+</AccordionGroup>

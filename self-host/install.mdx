@@ -1,0 +1,104 @@
+---
+title: "Self-hosting Klio"
+description: "Run the open-source engine on your own hardware. One command brings up the stack and wires your agents to it."
+---
+
+The Klio engine is open source and self-hostable. Self-hosting is free, nothing
+leaves your machine, and the guarantees are stronger than Cloud's: memory is
+encrypted at rest under a key **you** own, and every write is chained with
+SHA-256 so the history is tamper-evident.
+
+## Prerequisites
+
+- **Docker** running — check with `docker info`
+- **Node 20+** — needed only to run the launcher via `npx`
+- **~8 GB free disk** for the container images
+- *(macOS, if you choose the Ollama provider)* a working `ollama` install for
+  Metal acceleration. On Linux the `docker-ollama` compose profile is used as a
+  CPU fallback.
+
+## Install
+
+```bash
+npx @klio-tech/klio init
+```
+
+That single command pulls the containers (engine, bridge, dashboard, plus
+Postgres and Redis), boots them, runs migrations, walks you through provider and
+model selection, detects every supported AI agent on your machine, and patches
+each one's MCP config.
+
+Roughly 30 seconds on a warm Docker, about two minutes on a cold first run.
+
+<Tip>
+  `klio init` accepts `--local` or `--cloud` to skip the prompt, and `--email
+  <addr>` to pre-fill the claim address. Pin a specific build with
+  `--image-tag <tag>`.
+</Tip>
+
+## Confirm it is up
+
+```bash
+npx @klio-tech/klio status
+```
+
+This reports what is running, where, and as whom. Your agents should now list
+the eight Klio tools without any further configuration — the launcher already
+wrote their MCP config for you.
+
+## What you get that Cloud does not
+
+<Columns cols={2}>
+  <Card title="Keys you own" icon="key">
+    Memory is encrypted at rest under a key you hold. On Klio Cloud the keys are
+    ours.
+  </Card>
+
+  <Card title="Tamper-evident history" icon="link">
+    Every write is chained with SHA-256, so the history can be independently
+    verified. Cloud writes are not hash-chained today.
+  </Card>
+</Columns>
+
+<Info>
+  Anywhere the docs mention a user-held encryption key or a hash chain, that
+  refers to the **self-hosted** engine specifically. See
+  [What Klio keeps](/concepts/what-klio-keeps#where-it-physically-lives) for the
+  Cloud equivalent.
+</Info>
+
+## Connecting agents manually
+
+The launcher patches agent configs for you, but if you need to wire one by hand
+it is the same MCP endpoint on your own host:
+
+```
+http://localhost:8080/mcp
+```
+
+Everything in [Any MCP client](/connect/any-mcp-client) applies unchanged —
+only the base URL differs.
+
+## Day-two operations
+
+| Command | What it does |
+| --- | --- |
+| `npx @klio-tech/klio status` | Show what is running, where, and as whom |
+| `npx @klio-tech/klio update` | Re-prompt provider/model, or upgrade the stack |
+| `npx @klio-tech/klio configure` | Tweak runtime settings (auto-update mode, claim email) |
+| `npx @klio-tech/klio down` | Stop the stack — **data is preserved** |
+| `npx @klio-tech/klio uninstall` | Stop and **delete all data**; restore agent configs from backup |
+
+See the [CLI reference](/self-host/cli) for the full flag set.
+
+<Warning>
+  `uninstall` deletes your memory store. `down` is the one you want for stopping
+  the stack temporarily.
+</Warning>
+
+## Source and licence
+
+The engine lives at
+[github.com/klio-tech/klio](https://github.com/klio-tech/klio). Klio is open
+core: the engine and MCP shim are open source and free to self-host, while Klio
+Cloud is the hosted commercial product.

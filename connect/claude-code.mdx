@@ -1,0 +1,102 @@
+---
+title: "Claude Code"
+description: "Connect Claude Code to a shared Klio workplace."
+---
+
+## Add the server
+
+```bash
+claude mcp add --transport http klio https://mcp.klio.tech/mcp \
+  --header "X-Vex-Key: YOUR_KEY" \
+  --header "X-Vex-Agent: claude-code"
+```
+
+Then confirm it registered:
+
+```bash
+claude mcp list
+```
+
+You should see `klio` with eight tools: `recall`, `remember`, `observe`,
+`plan`, `decide`, `note`, `space`, `forget`.
+
+<Tip>
+  `X-Vex-Agent: claude-code` is what makes attribution work later — it is how
+  you tell which agent left a given decision. Pick a stable string and keep it
+  consistent across machines.
+</Tip>
+
+## Make recall reflexive
+
+Claude Code will use the tools when it judges them relevant, but memory pays off
+when reading is automatic. Add this to `CLAUDE.md` at your repo root:
+
+```md
+## Shared memory (Klio)
+
+Before answering questions about this project, call `recall` first — another
+agent may have already decided it.
+
+Persist durable knowledge as it arises, without being asked:
+- a decision is made → `decide` with its rationale
+- a plan is set → `plan`
+- a durable fact or preference → `remember`
+
+Do not persist secrets, tool call logs, or file contents.
+```
+
+<Note>
+  Repo-level `CLAUDE.md` is the right home for this — it travels with the
+  project, so every teammate's Claude Code picks up the same habit.
+</Note>
+
+## Scope it to the repo
+
+If you run several projects, give each one its own
+[space](/concepts/scope) so a question about one does not pull answers from
+another:
+
+```bash
+claude mcp add --transport http klio https://mcp.klio.tech/mcp \
+  --header "X-Vex-Key: YOUR_KEY" \
+  --header "X-Vex-Agent: claude-code" \
+  --header "X-Vex-Project: git@github.com:acme/billing.git"
+```
+
+`X-Vex-Project` accepts a git remote URL or a project slug.
+
+<Warning>
+  Project resolution fails open — an unrecognised value falls back to org-wide
+  rather than erroring. It is a relevance filter, not a security boundary.
+</Warning>
+
+## Local install
+
+If you are self-hosting, `klio init` wires Claude Code for you rather than you
+running `claude mcp add` by hand:
+
+```bash
+npx @klio-tech/klio init --local
+```
+
+See [Self-hosting](/self-host/install).
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Tools do not appear" icon="triangle-exclamation">
+    Run `claude mcp list`. If `klio` is absent the server was never added; if it
+    is present but failing, the key is usually wrong — a bad key returns `401`.
+  </Accordion>
+
+  <Accordion title="Recall returns nothing" icon="magnifying-glass">
+    Most often the write went somewhere else. Check that both agents use the
+    same key (same org), and that you are not writing with `space` set but
+    reading without it.
+  </Accordion>
+
+  <Accordion title="The agent never calls the tools" icon="robot">
+    Without instruction, a model treats tools as optional. Add the `CLAUDE.md`
+    block above — an explicit "call recall first" changes behaviour immediately.
+  </Accordion>
+</AccordionGroup>
