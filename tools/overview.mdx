@@ -1,13 +1,13 @@
 ---
 title: "Tools overview"
-description: "The eight MCP tools Klio exposes, and when each one is the right verb."
+description: "The ten MCP tools Klio exposes, and when each one is the right verb."
 ---
 
 Klio's surface is deliberately small: one verb per job, so an agent choosing
-between them does not have to think hard. Every MCP client gets all eight
+between them does not have to think hard. Every MCP client gets all ten
 automatically on connection — there is no SDK to wire up.
 
-## The eight verbs
+## The ten verbs
 
 | Tool | Purpose | Required |
 | --- | --- | --- |
@@ -17,8 +17,10 @@ automatically on connection — there is no SDK to wire up.
 | [`plan`](/tools/plan) | Record a forward-looking plan | `content` |
 | [`observe`](/tools/observe) | Log what the agent saw or did this session | `content` |
 | [`note`](/tools/note) | Durable context that is not a fact, decision, or plan | `content` |
+| [`artifact_put`](/tools/artifact-put) | Store a document, JSON record, or file | `title`, `summary`, `kind` |
+| [`artifact_get`](/tools/artifact-get) | Fetch an artifact surfaced by recall | `artifact_id` |
 | [`space`](/tools/space) | List, create, inspect, or switch spaces | `action` |
-| [`forget`](/tools/forget) | Retract a memory by id | `memory_id` |
+| [`forget`](/tools/forget) | Retract a memory or artifact by id | `memory_id` |
 
 ## Choosing a write verb
 
@@ -77,6 +79,13 @@ Every write tool (`remember`, `decide`, `plan`, `observe`, `note`) accepts:
 <ParamField path="space" type="string">
   Optional space slug. Omit to write to the org's default store.
 </ParamField>
+
+<Note>
+  [`artifact_put`](/tools/artifact-put) is the one write tool without a
+  `scope` parameter — artifacts are always org-shared, with no private,
+  `agent`-scoped equivalent. It does accept `space` and `project`. See
+  [Artifacts](/concepts/artifacts).
+</Note>
 
 ## What good usage looks like
 

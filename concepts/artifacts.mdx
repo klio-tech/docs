@@ -1,0 +1,161 @@
+---
+title: "Artifacts"
+description: "Files, documents, and JSON records shared across the org, discovered through the same recall an agent already calls."
+---
+
+Memory is good at facts, decisions, and plans — short, durable statements. It
+is the wrong shape for a design doc, a dataset, or a PDF. Artifacts are Klio's
+answer to that: a place to put the bytes, wired into the same discovery path
+as everything else.
+
+An artifact is a document, a JSON record, or a file, stored under the org and
+made discoverable to every agent in it — the same tenancy boundary as memory,
+described in [Scope](/concepts/scope).
+
+## Discovery: a card, then the bytes
+
+This is the part worth understanding before the tool parameters.
+
+Storing an artifact does two things, not one. It stores the bytes, and it
+writes a short **card** into the same shared memory that [`recall`](/tools/recall)
+already searches — a sentence or two describing what the artifact is, tagged
+`memory_type: "artifact"` with the artifact's id in `metadata.artifact_id`.
+
+That means an agent that has never heard of the artifact finds it the
+ordinary way: it calls `recall` about something it needs, the card surfaces
+like any other memory, and the agent reads `metadata.artifact_id` off the
+result and calls [`artifact_get`](/tools/artifact-get) to fetch the contents.
+No separate artifact index, no second tool to remember to call.
+
+<Steps>
+  <Step title="Something gets stored">
+    ```json
+    {
+      "title": "Q3 pricing analysis",
+      "summary": "Competitor pricing comparison and margin model for the Q3 review",
+      "kind": "document",
+      "content": "# Q3 Pricing Analysis\n\n..."
+    }
+    ```
+
+    Klio writes the artifact and, alongside it, a card:
+
+    ```text
+    [artifact] Q3 pricing analysis — Competitor pricing comparison and margin
+    model for the Q3 review (document, 4.1 KB)
+    ```
+  </Step>
+
+  <Step title="A different agent, later, with no idea this exists">
+    ```json
+    { "query": "did anyone look at competitor pricing for Q3?" }
+    ```
+
+    `recall` returns the card like any other memory — same relevance ranking,
+    same scope rules — with `metadata.artifact_id` pointing at the full
+    document.
+  </Step>
+
+  <Step title="Fetch the contents">
+    ```json
+    { "artifact_id": "art_01J...", "mode": "text" }
+    ```
+
+    Returns the text, paginated. See [`artifact_get`](/tools/artifact-get) for
+    paging and the binary path.
+  </Step>
+</Steps>
+
+<Tip>
+  The card is deliberately terse — enough for recall's ranking and for a human
+  or agent to decide whether it is worth opening. The full content lives
+  behind `artifact_get`, not in the card itself.
+</Tip>
+
+## Storing one
+
+[`artifact_put`](/tools/artifact-put) has three behaviours, selected by which
+arguments you pass:
+
+| Path | When | Calls |
+| --- | --- | --- |
+| **Inline** | Text up to 64KB | One call, with `content` |
+| **Presigned upload** | Larger or binary content | Two calls: request, then upload the bytes, then confirm |
+| **Confirm** | Second half of the presigned path | One call, passing back the `artifact_id` |
+
+Inline is the only write path available to clients that speak MCP but cannot
+make an arbitrary HTTP request — ChatGPT connectors and Claude.ai custom
+connectors both fall in this category. If your integration is one of those,
+your artifacts go through `content`, up to 64KB.
+
+<Note>
+  Confirm is not a formality. The server re-measures the uploaded object
+  itself and enforces the plan's per-file and pool limits against that
+  measured size, not whatever the client declared when requesting the
+  upload URL.
+</Note>
+
+## Reading one
+
+[`artifact_get`](/tools/artifact-get) has two modes:
+
+- **`mode: "text"`** *(default)* — the contents, one page at a time. Binary
+  artifacts return an error pointing at `mode: "url"` instead — Klio does no
+  text extraction from PDFs or Office documents in this version.
+- **`mode: "url"`** — a presigned download link, valid for 15 minutes,
+  forced to download rather than render inline.
+
+## Retracting one
+
+[`forget`](/tools/forget) accepts an artifact id as well as a memory id. It
+retracts the artifact and hides its card in the same call — recall stops
+surfacing it immediately.
+
+## Storage limits
+
+Artifacts are available on every plan; what a plan buys is capacity, not
+access. Limits are per file and for the org's total pool:
+
+| Plan | Per file | Total pool |
+| --- | --- | --- |
+| Free | 10 MB | 100 MB |
+| Starter | 50 MB | 5 GB |
+| Max ($499/mo) | 1 GB | 1 TB |
+
+<Note>
+  Max is a new plan, built around this pool size rather than a higher memory
+  quota — if your artifacts are large or you have many of them, Max is the
+  plan to reach for.
+</Note>
+
+<Warning>
+  Once the pool is full, writes are rejected until something is forgotten,
+  superseded, or the plan is upgraded. Reads always keep working — a full
+  pool never blocks `artifact_get` or `recall`.
+</Warning>
+
+## Retention
+
+Ordinary memories age out under the plan's retention window. Artifacts do
+not — an artifact lives until it is forgotten, superseded by a newer version,
+or the org's storage pool fills. There is no time-based expiry on artifact
+content.
+
+## What this version does not do
+
+<Columns cols={2}>
+  <Card title="No dashboard UI" icon="ban">
+    Artifacts are managed through the MCP tools only. There is nowhere in
+    app.klio.tech to browse, upload, or delete one directly.
+  </Card>
+
+  <Card title="No CLI command" icon="ban">
+    The `klio` CLI does not have an artifact command in this version.
+  </Card>
+
+  <Card title="No text extraction" icon="ban">
+    Binary formats — PDF, Word, Excel, images — are stored and downloadable,
+    but nothing extracts their text for `mode: "text"` or for recall. Only the
+    card is searchable; the binary content itself is not.
+  </Card>
+</Columns>

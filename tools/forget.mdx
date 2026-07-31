@@ -1,16 +1,23 @@
 ---
 title: "forget"
-description: "Retract a memory by id so it stops surfacing in recall."
+description: "Retract a memory or artifact by id so it stops surfacing in recall."
 ---
 
 Explicit retraction. Use it when something was written that should not have
 been, or when a fact has stopped being true and nothing has contradicted it yet.
 
+`memory_id` also accepts an artifact id. Klio tries it as an artifact first —
+a hit retracts the artifact and hides its [card](/concepts/artifacts) in the
+same call, so recall stops surfacing it immediately. If it is not an artifact
+id, the ordinary memory retraction runs instead.
+
 ## Parameters
 
 <ParamField path="memory_id" type="string" required>
-  The id of the memory to retract. Ids come back on
-  [`recall`](/tools/recall) results.
+  The id of the memory or artifact to retract. Memory ids come back on
+  [`recall`](/tools/recall) results; artifact ids come back on
+  [`artifact_put`](/tools/artifact-put) responses or in a card's
+  `metadata.artifact_id`.
 </ParamField>
 
 ## Example

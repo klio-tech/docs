@@ -51,7 +51,7 @@ overrides it.
 | --- | --- | --- |
 | `X-Vex-Key` | Yes¹ | API key. Resolves the org. |
 | `X-Vex-Agent` | No | Stable agent identity. Drives attribution and `agent` scope. |
-| `X-Vex-Project` | No | Declares the workspace's project — a git remote URL or project slug. |
+| `X-Vex-Project` | No | Declares the workspace's project — a git remote URL, or the repo root path for a non-git workspace. |
 
 <Info>
   ¹ Unless you are authenticating with an OAuth bearer token instead.
@@ -70,7 +70,9 @@ private.
 ### `X-Vex-Project`
 
 Lets a workspace declare its project once instead of passing `project` on every
-call. It accepts a git remote URL or a project slug.
+call. It accepts a git remote URL when the workspace is a git repo, and the
+repository root directory path when it is not — both resolve to the same
+project a matching `project` argument would.
 
 <Warning>
   Project resolution **fails open**: a missing header, an unrecognised

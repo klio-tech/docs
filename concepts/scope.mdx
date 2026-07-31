@@ -87,13 +87,34 @@ without needing a separate space:
 ```
 
 Clients can additionally declare a workspace-wide project through the
-`X-Vex-Project` header, carrying a git remote URL or a project slug.
+`X-Vex-Project` header. A project is identified by whichever of these it has:
+a git remote URL when the workspace is a git repo, or the repository root
+directory path when it is not.
+
+<Note>
+  Both resolve. Earlier, only a git remote or a project's display name looked
+  itself up correctly — a non-git project fell back silently to org-wide
+  recall, with nothing to indicate why its memories were not showing up
+  filtered. Directory-path projects now resolve the same way git-remote ones
+  always did.
+</Note>
+
+Filtering by project is additive, not subtractive: recall fills the result set
+with that project's memories first, then — if the limit has not been reached —
+fills the remaining slots with unfiled memories (nothing was ever explicitly
+attached to a project). Memories filed under a *different* project never come
+back. There is no third pool for "everything, ranked, regardless of project."
 
 <Warning>
   Project resolution **fails open**. If the header is missing, the identifier is
   unknown, or the lookup errors, the request falls back to org-wide rather than
   returning nothing. That keeps a misconfigured client working, but it means the
   header is a convenience — never a security boundary. The boundary is the org.
+
+  This is the same story as [spaces](/tools/space#spaces-are-not-a-tenancy-boundary):
+  narrowing by project is a relevance filter. Anyone holding the org's API key
+  can still recall any project's memories by asking for them, or by omitting
+  the filter entirely.
 </Warning>
 
 ## Choosing a layout
