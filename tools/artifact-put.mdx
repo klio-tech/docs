@@ -151,6 +151,17 @@ arguments needed.
     [storage limits](/concepts/artifacts#storage-limits).
   </Accordion>
 
+  <Accordion title="100MB ceiling on a single upload" icon="triangle-exclamation">
+    A presigned upload is one HTTP `PUT`, so `size_bytes` above 100MB is
+    rejected with `too_large_for_single_upload`. Multipart upload is not
+    available yet, so an artifact larger than that cannot be stored in this
+    release.
+
+    This only affects plans whose per-file limit is above 100MB — on every
+    other plan the plan limit is reached first and the error is
+    `file_too_large`. Nothing is reserved when a request is refused.
+  </Accordion>
+
   <Accordion title="Reads keep working when the pool is full" icon="lock">
     A full pool rejects further `artifact_put` calls. It does not affect
     `artifact_get` or `recall` — existing artifacts stay readable.
