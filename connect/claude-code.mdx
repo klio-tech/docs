@@ -17,8 +17,8 @@ Then confirm it registered:
 claude mcp list
 ```
 
-You should see `klio` with eight tools: `recall`, `remember`, `observe`,
-`plan`, `decide`, `note`, `space`, `forget`.
+You should see `klio` with ten tools: `recall`, `remember`, `observe`,
+`plan`, `decide`, `note`, `artifact_put`, `artifact_get`, `space`, `forget`.
 
 <Tip>
   `X-Vex-Agent: claude-code` is what makes attribution work later — it is how
@@ -63,7 +63,9 @@ claude mcp add --transport http klio https://mcp.klio.tech/mcp \
   --header "X-Vex-Project: git@github.com:acme/billing.git"
 ```
 
-`X-Vex-Project` accepts a git remote URL or a project slug.
+`X-Vex-Project` accepts a git remote URL. If the repo has no remote configured,
+pass the repository's root directory path instead — Klio resolves both the
+same way.
 
 <Warning>
   Project resolution fails open — an unrecognised value falls back to org-wide

@@ -23,7 +23,8 @@
             "pages": [
               "concepts/handover-loop",
               "concepts/scope",
-              "concepts/what-klio-keeps"
+              "concepts/what-klio-keeps",
+              "concepts/artifacts"
             ]
           },
           {
@@ -60,6 +61,10 @@
               "tools/observe",
               "tools/note"
             ]
+          },
+          {
+            "group": "Artifacts",
+            "pages": ["tools/artifact-put", "tools/artifact-get"]
           },
           {
             "group": "Managing",

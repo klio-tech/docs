@@ -1,0 +1,158 @@
+---
+title: "artifact_put"
+description: "Store a document, JSON record, or file, and make it discoverable through recall."
+---
+
+Writes an artifact and, alongside it, the card that makes it findable — see
+[Artifacts](/concepts/artifacts) for how the two connect. Always writes to the
+org's shared memory; there is no `agent`-scoped, private artifact.
+
+Three behaviours, selected by which arguments are present.
+
+## Inline: `content` given
+
+One call. For text up to 64KB — the only write path available to clients that
+speak MCP but cannot make an arbitrary HTTP request, such as ChatGPT
+connectors and Claude.ai custom connectors.
+
+```json
+{
+  "title": "Q3 pricing analysis",
+  "summary": "Competitor pricing comparison and margin model for the Q3 review",
+  "kind": "document",
+  "content": "# Q3 Pricing Analysis\n\n..."
+}
+```
+
+```json
+{
+  "stored": true,
+  "artifact_id": "art_01J...",
+  "version": 1,
+  "status": "active"
+}
+```
+
+## Presigned upload: `content` omitted, `mime_type` and `size_bytes` given
+
+For larger or binary content. Returns an upload URL rather than storing
+anything yet.
+
+```json
+{
+  "title": "Onboarding deck",
+  "summary": "Slide deck used in the July onboarding call",
+  "kind": "file",
+  "mime_type": "application/pdf",
+  "size_bytes": 2400000
+}
+```
+
+```json
+{
+  "stored": false,
+  "artifact_id": "art_01J...",
+  "upload_url": "https://...",
+  "method": "PUT",
+  "expires_in": 900
+}
+```
+
+`upload_url` is signed for exactly the `size_bytes` you declared — an upload
+of any other size is rejected at the storage layer, so declare the real
+size. Upload the bytes with an HTTP `PUT`, then confirm.
+
+## Confirm: `artifact_id` given
+
+Call again with the `artifact_id` from the presigned response, no other
+arguments needed.
+
+```json
+{ "artifact_id": "art_01J..." }
+```
+
+```json
+{
+  "stored": true,
+  "artifact_id": "art_01J...",
+  "version": 1,
+  "status": "active"
+}
+```
+
+<Note>
+  The server measures the uploaded object itself at confirm time — size and
+  checksum both — and enforces the plan's limits against that measured value,
+  not the `size_bytes` you declared when requesting the URL. Confirm is what
+  activates the artifact; nothing is discoverable through recall until it
+  succeeds.
+</Note>
+
+## Parameters
+
+<ParamField path="title" type="string" required>
+  Short name for the artifact. Up to 200 characters.
+</ParamField>
+
+<ParamField path="summary" type="string" required>
+  One line describing what this is. Other agents find the artifact by this
+  text, via the card — write it as the search phrase you would want to match.
+  Up to 500 characters.
+</ParamField>
+
+<ParamField path="kind" type="'document' | 'record' | 'file'" required>
+  `document` for prose, `record` for JSON, `file` for binary content.
+</ParamField>
+
+<ParamField path="content" type="string">
+  Inline text, up to 64KB. Omit to use the presigned upload path instead.
+</ParamField>
+
+<ParamField path="mime_type" type="string">
+  MIME type of the upload. Required when `content` is omitted.
+</ParamField>
+
+<ParamField path="size_bytes" type="integer">
+  Byte size of the upload. Required when `content` is omitted — the upload URL
+  is signed for exactly this many bytes.
+</ParamField>
+
+<ParamField path="space" type="string">
+  Optional space slug. Omit to file to the org's default store.
+</ParamField>
+
+<ParamField path="project" type="string">
+  Optional project identifier. See [Scope](/concepts/scope) for how project
+  resolution works.
+</ParamField>
+
+<ParamField path="supersedes" type="string">
+  Id of an artifact this one replaces. The superseded version is retired and
+  its card hidden, the same way a superseded memory stops surfacing in
+  recall.
+</ParamField>
+
+<ParamField path="artifact_id" type="string">
+  Confirms an upload started earlier. Pass only this (and no other argument)
+  to confirm.
+</ParamField>
+
+## Limits
+
+<AccordionGroup>
+  <Accordion title="64KB inline, larger goes through the presigned path" icon="file">
+    `content` over 64KB is rejected outright, with a message pointing at the
+    presigned path — it does not silently truncate or fall back.
+  </Accordion>
+
+  <Accordion title="Per-file and pool limits are plan-based" icon="database">
+    Both the inline and presigned paths are checked against the plan's
+    per-file limit and the org's remaining pool before anything is stored. See
+    [storage limits](/concepts/artifacts#storage-limits).
+  </Accordion>
+
+  <Accordion title="Reads keep working when the pool is full" icon="lock">
+    A full pool rejects further `artifact_put` calls. It does not affect
+    `artifact_get` or `recall` — existing artifacts stay readable.
+  </Accordion>
+</AccordionGroup>

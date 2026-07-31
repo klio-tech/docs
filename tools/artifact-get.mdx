@@ -1,0 +1,97 @@
+---
+title: "artifact_get"
+description: "Fetch an artifact surfaced by recall — its text, paginated, or a download link."
+---
+
+The read half of [artifacts](/concepts/artifacts). Takes the `artifact_id`
+from a card's `metadata.artifact_id`, surfaced by a normal
+[`recall`](/tools/recall) call.
+
+## Parameters
+
+<ParamField path="artifact_id" type="string" required>
+  From a recall result's `metadata.artifact_id`.
+</ParamField>
+
+<ParamField path="mode" type="'text' | 'url'" default="text">
+  `text` returns the contents, paginated. `url` returns a presigned download
+  link instead.
+</ParamField>
+
+<ParamField path="offset" type="integer" default="0">
+  Character offset to continue reading from. Used with `mode: "text"`.
+</ParamField>
+
+## `mode: "text"` (default)
+
+Returns the contents one page at a time. Page size is 51,200 characters.
+
+```json
+{ "artifact_id": "art_01J...", "mode": "text" }
+```
+
+```json
+{
+  "artifact_id": "art_01J...",
+  "title": "Q3 pricing analysis",
+  "kind": "document",
+  "text": "# Q3 Pricing Analysis\n\n...",
+  "offset": 0,
+  "has_more": true
+}
+```
+
+Continue by passing the next offset:
+
+```json
+{ "artifact_id": "art_01J...", "mode": "text", "offset": 51200 }
+```
+
+<Warning>
+  Binary artifacts — PDFs, Office documents, images — return
+  `{"artifact_id": "...", "title": "...", "kind": "...", "error": "not_text"}`
+  rather than an extraction attempt. Klio does no text extraction from binary
+  formats in this version; use `mode: "url"` to download and read them
+  yourself.
+</Warning>
+
+## `mode: "url"`
+
+Returns a presigned download link.
+
+```json
+{ "artifact_id": "art_01J...", "mode": "url" }
+```
+
+```json
+{
+  "artifact_id": "art_01J...",
+  "title": "Onboarding deck",
+  "kind": "file",
+  "url": "https://...",
+  "expires_in": 900
+}
+```
+
+The link is valid for 900 seconds and forces a download
+(`Content-Disposition: attachment`) rather than rendering inline — including
+for content types a browser would otherwise open directly, like PDFs or
+images.
+
+## Notes
+
+<AccordionGroup>
+  <Accordion title="Text is bounded per page, not per artifact" icon="file-lines">
+    A page is capped at 51,200 characters regardless of how large the
+    underlying artifact is. A multi-megabyte document takes several calls with
+    increasing `offset` to read in full — `has_more` tells you whether another
+    page remains.
+  </Accordion>
+
+  <Accordion title="No text extraction from binaries" icon="ban">
+    `mode: "text"` works for plain text, JSON, XML, and YAML content. PDFs,
+    Word and Excel files, and images are not extracted — `mode: "text"` on one
+    of these returns `not_text`, and `mode: "url"` is the only way to retrieve
+    it.
+  </Accordion>
+</AccordionGroup>

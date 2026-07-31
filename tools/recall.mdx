@@ -24,6 +24,8 @@ project — it is the half of the handover that makes the other half worth doing
 
 <ParamField path="project" type="string">
   Optional project identifier, to narrow results without switching space.
+  Matches a git remote URL, a repository root path, a project id, or a
+  display name. See [Scope](/concepts/scope#narrowing-a-recall).
 </ParamField>
 
 <ParamField path="limit" type="integer" default="10">
@@ -75,6 +77,13 @@ project — it is the half of the handover that makes the other half worth doing
     model's context on progressively less relevant results — usually a sign the
     query should be narrower, or the memories should live in a
     [space](/concepts/scope).
+  </Accordion>
+
+  <Accordion title="project fills, it does not exclude down to just that project" icon="folder-tree">
+    Passing `project` returns that project's memories first, then fills any
+    remaining slots (up to `limit`) with unfiled memories — never with another
+    project's. If a query has few hits inside the project, expect the rest of
+    the page to be org-wide unfiled results, not padding from elsewhere.
   </Accordion>
 </AccordionGroup>
 
