@@ -29,37 +29,62 @@ Klio answers that with three separate axes.
   </Card>
 </CardGroup>
 
-## Shared by default, private on request
+## The visibility ladder
 
-Every write tool takes a `scope` parameter with two values:
+Where a memory lands depends on **how it was written**, not on a parameter you
+have to remember.
 
-| `scope` | Who can recall it | Use it for |
+| `scope` | Who can recall it | What lands there |
 | --- | --- | --- |
-| `org` *(default)* | Every agent on the org | The shared team brain — decisions, repo rules, plans |
-| `agent` | Only the agent identity that wrote it | Working notes kept out of other agents' recall |
+| `private` | **Only you.** Not teammates. Not admins. | Everything your editor captures passively |
+| `project` | Members of that project, and org admins | Explicit writes made while a project is set |
+| `org` | Everyone in the org | Explicit writes — `remember`, `decide`, `plan`, `note` |
+| `agent` *(deprecated)* | The agent identity that wrote it | Superseded by `private`. Still readable; no longer written. |
+
+### Capture is private, sharing is deliberate
+
+Passive capture — the hooks that record what your agent did — lands in **your**
+private scope. Nobody else can read it, including an organisation administrator.
+
+Calling a write tool is the act of sharing. `remember`, `decide`, `plan` and
+`note` write to the team, or to a project when one is set.
 
 ```json
-{
-  "content": "The staging deploy needs the VPN on",
-  "scope": "org"
-}
+{ "content": "The staging deploy needs the VPN on" }
 ```
 
-The default is `org` on purpose. A shared workplace where everything defaults to
-private is an empty workplace — but when an agent genuinely needs a scratchpad,
-`agent` scope keeps it out of everyone else's recall.
+That goes to the whole org, because you chose to write it.
+
+### Recall spans everything you are entitled to
+
+A normal `recall` searches your private memories, the projects you belong to,
+and the org's shared brain — in one call. Ask for `scope: "private"` to narrow
+to your own.
+
+### Promoting something you captured
+
+When a passive capture turns out to be worth sharing, promote it:
+
+```json
+{ "memory_id": "60a0fa87-…", "to": "org" }
+```
+
+`share` moves it from your private scope to the team's, and keeps you recorded
+as the author. Only the owner of a memory can share it.
+
+<Note>
+  **Private means private.** There is no administrator override, no support
+  path and no break-glass. An organisation administrator sees every org and
+  project memory and a single org-wide storage total — never the contents of
+  anyone's private scope, and never a per-person count of it.
+</Note>
 
 <Warning>
-  **`agent` scope is not a privacy boundary.** It resolves against the
-  `X-Vex-Agent` header, which the client sends and can therefore set to any
-  value. It keeps working notes out of other agents' recall; it does not keep
-  them away from someone who wants to read them.
-
-  If your client sends no header at all, every agent shares one default
-  identity and `agent` scope stops meaning very much. Set the header.
-
-  Per-person private memory that *is* a real boundary is in development. Until
-  it ships, treat everything you write as readable by your organisation.
+  **`agent` scope is not a privacy boundary** and never was. It resolves
+  against the `X-Vex-Agent` header, which the client sends and can set to any
+  value. It is deprecated in favour of `private`, which is enforced against
+  your verified credential. Existing `agent`-scoped memories remain readable;
+  nothing new is written there.
 </Warning>
 
 ## Spaces
