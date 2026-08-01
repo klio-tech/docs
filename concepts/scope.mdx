@@ -36,7 +36,7 @@ Every write tool takes a `scope` parameter with two values:
 | `scope` | Who can recall it | Use it for |
 | --- | --- | --- |
 | `org` *(default)* | Every agent on the org | The shared team brain — decisions, repo rules, plans |
-| `agent` | Only the agent identity that wrote it | Working notes private to one agent |
+| `agent` | Only the agent identity that wrote it | Working notes kept out of other agents' recall |
 
 ```json
 {
@@ -49,11 +49,18 @@ The default is `org` on purpose. A shared workplace where everything defaults to
 private is an empty workplace — but when an agent genuinely needs a scratchpad,
 `agent` scope keeps it out of everyone else's recall.
 
-<Note>
-  `scope: "agent"` resolves against the `X-Vex-Agent` header. If your client
-  does not send one, every agent shares a single default identity — and
-  `agent` scope stops meaning very much. Set the header.
-</Note>
+<Warning>
+  **`agent` scope is not a privacy boundary.** It resolves against the
+  `X-Vex-Agent` header, which the client sends and can therefore set to any
+  value. It keeps working notes out of other agents' recall; it does not keep
+  them away from someone who wants to read them.
+
+  If your client sends no header at all, every agent shares one default
+  identity and `agent` scope stops meaning very much. Set the header.
+
+  Per-person private memory that *is* a real boundary is in development. Until
+  it ships, treat everything you write as readable by your organisation.
+</Warning>
 
 ## Spaces
 
