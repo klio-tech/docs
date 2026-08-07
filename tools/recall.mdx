@@ -9,13 +9,16 @@ project — it is the half of the handover that makes the other half worth doing
 ## Parameters
 
 <ParamField path="query" type="string" required>
-  What to search the team's memory for. Semantic, not keyword — phrase it the
-  way you would ask a colleague.
+  What to search the team's memory for. Search matches on meaning and on exact
+  wording at the same time, so you can phrase it the way you would ask a
+  colleague, or paste the identifier you are actually looking for.
 </ParamField>
 
-<ParamField path="scope" type="'org' | 'agent'" default="org">
-  `org` searches the shared team memory. `agent` searches only what this agent
-  identity wrote privately. See [Scope](/concepts/scope).
+<ParamField path="scope" type="'org' | 'agent' | 'private'" default="org">
+  `org` searches the shared team memory plus your own private memories and the
+  projects you belong to. `private` narrows to your own memories only. `agent`
+  searches what this agent identity wrote and is not a privacy boundary. See
+  [Scope](/concepts/scope).
 </ParamField>
 
 <ParamField path="space" type="string">
@@ -55,6 +58,12 @@ project — it is the half of the handover that makes the other half worth doing
   "scope": "agent"
 }
 ```
+
+```json An exact identifier
+{
+  "query": "KLIO_METRICS_TOKEN"
+}
+```
 </CodeGroup>
 
 ## Notes on behaviour
@@ -70,6 +79,23 @@ project — it is the half of the handover that makes the other half worth doing
     A memory written by another agent a second ago is available to the next
     recall. There is no push to already-running agents, so an agent mid-session
     sees new state only when it calls `recall` again.
+  </Accordion>
+
+  <Accordion title="Exact wording counts, so paste the identifier" icon="magnifying-glass">
+    Recall runs two searches and combines them. One matches meaning, so a
+    paraphrase finds a memory that used different words. The other matches the
+    text itself, so a rare literal finds the memory that contains it.
+
+    This matters because the two fail in opposite places. A search for a flag
+    name, an error string, a commit hash or a function name is the case where
+    meaning-based search is weakest: the token is rare, so it carries little
+    signal, and memories that are merely *about* the same topic can crowd out
+    the one memory that actually names it. Pasting the literal is not a worse
+    query than describing it. It is usually the better one.
+
+    An identifier is matched as its parts, in order. `pool_pre_ping` matches
+    text containing `pool pre ping` adjacent and in that sequence, so a memory
+    that happens to use all three words separately does not match.
   </Accordion>
 
   <Accordion title="Tune limit down, not up" icon="sliders">
